@@ -42,6 +42,32 @@
         - vim
         - samba
         - samba-common-bin
+        - libjna-java
 
     - name: Set HDD Spindown to 50 seconds
       command: hdparm -S 10 /dev/sda
+
+    - name: Remove Crashplan jre
+      command: rm -r /usr/local/crashplan/jre
+
+    - name: Create symlink to pi JRE8 for Crashplan
+      file:
+        src: /usr/lib/jvm/jdk-8-oracle-arm-vfp-hflt
+        dest: /usr/local/crashplan/jre
+        state: link
+
+    - name: Fix libjtux.so and libmd5.so for Crashplan
+      get_url: url=http://www.jonrogers.co.uk/wp-content/uploads/2012/05/{{ item }} dest=/usr/local/crashplan
+      with_items:
+        - libjtux.so
+        - libmd5.so
+      
+    - name: Edit CrashPlanEngine
+      replace: >
+       dest=/usr/local/crashplan/bin/CrashPlanEngine
+       regexp='FULL_CP=\"\$TARGETDIR'
+       replace='FULL_CP="/usr/share/java/jna.jar:$TARGETDIR'
+       backup=yes
+       
+    - name: Run CrashPlan on startup
+      command: update-rc.d crashplan defaults
