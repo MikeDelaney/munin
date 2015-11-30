@@ -43,6 +43,7 @@
         - samba
         - samba-common-bin
         - libjna-java
+        - apt-transport-https
 
     - name: Set HDD Spindown to 50 seconds
       command: hdparm -S 10 /dev/sda
@@ -71,3 +72,17 @@
        
     - name: Run CrashPlan on startup
       command: update-rc.d crashplan defaults
+
+    - name: Get gpg key for Plex repository
+      apt_key: >
+       url='https://dev2day.de/pms/dev2day-pms.gpg.key'
+       state=present
+
+    - name: Add Plex repository
+      apt_repository: >
+       repo='deb https://dev2day.de/pms/ jessie main'
+       state=present
+       update_cache=yes
+      
+    - name: Install Plex
+      apt: name=plexmediaserver state=present
